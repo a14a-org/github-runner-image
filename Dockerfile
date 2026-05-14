@@ -18,9 +18,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && node --version \
     && npm --version
 
-RUN curl -fsSL https://bun.sh/install | bash -s -- --no-completions \
-    && mv /root/.bun/bin/bun /usr/local/bin/bun \
-    && chmod +x /usr/local/bin/bun \
+RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash \
     && bun --version
 
 RUN install -m 0755 -d /etc/apt/keyrings \
