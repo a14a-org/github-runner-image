@@ -26,4 +26,8 @@ RUN curl -fsSL "https://download.docker.com/linux/static/stable/x86_64/docker-${
       | tar -xz -C /usr/local/bin --strip-components=1 docker/docker \
     && docker --version
 
-USER runner
+# Intentionally NOT switching to a non-root USER here.
+# The base myoung34/github-runner image expects its entrypoint to run as root
+# so it can perform user-dropping based on RUN_AS_ROOT itself. Locking the
+# image to UID 1001 here breaks registration with:
+#   "RUN_AS_ROOT env var is set to true but ... UID '1001'"
