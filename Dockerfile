@@ -1,4 +1,4 @@
-FROM myoung34/github-runner:latest
+FROM myoung34/github-runner:latest@sha256:10eaeb47c8cbe8fea146f20f8362a4211f1b5c051a80aaf13daae7b93f4f5844
 
 USER root
 
@@ -18,7 +18,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && node --version \
     && npm --version
 
-RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash \
+ARG BUN_VERSION=1.3.14
+RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash -s "bun-v${BUN_VERSION}" \
     && bun --version
 
 ARG DOCKER_CLI_VERSION=27.3.1

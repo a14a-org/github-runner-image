@@ -8,9 +8,9 @@ with the toolchain the fleet's CI workflows expect.
 
 | Tool | Source |
 |---|---|
-| Runner agent, `gh`, `git`, `curl`, `jq` | inherited from `myoung34/github-runner:latest` |
+| Runner agent, `gh`, `git`, `curl`, `jq` | inherited from a digest-pinned `myoung34/github-runner:latest` |
 | Node.js 20 + `npm` | NodeSource apt repo |
-| Bun (latest, installed to `/usr/local/bin/bun`) | `bun.sh/install` |
+| Bun 1.3.14 (installed to `/usr/local/bin/bun`) | version-pinned `bun.sh/install` |
 | Python 3 + `pip` | apt package |
 | `build-essential` (gcc, make) | apt package |
 | Docker CLI (static binary, `/usr/local/bin/docker`) | `download.docker.com/linux/static` |
@@ -18,6 +18,10 @@ with the toolchain the fleet's CI workflows expect.
 The Docker CLI is included but **needs `/var/run/docker.sock` mounted into
 the container** to actually invoke Docker. That mount is configured in
 Coolify, not here.
+
+Renovate should update the inherited image digest deliberately. Treat that
+update as an entrypoint/lifecycle change and repeat the persistence proof below
+before promoting it to Coolify.
 
 ## How it's published
 
