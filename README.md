@@ -8,7 +8,7 @@ with the toolchain the fleet's CI workflows expect.
 
 | Tool | Source |
 |---|---|
-| Runner agent, `gh`, `git`, `curl`, `jq` | inherited from a digest-pinned `myoung34/github-runner:latest` |
+| Runner agent, `gh`, `git`, `curl`, `jq` | inherited from a digest-pinned `myoung34/github-runner:ubuntu-noble` |
 | Node.js 20 + `npm` | NodeSource apt repo |
 | Bun 1.3.14 (installed to `/usr/local/bin/bun`) | version-pinned `bun.sh/install` |
 | Python 3 + `pip` | apt package |
@@ -18,6 +18,22 @@ with the toolchain the fleet's CI workflows expect.
 The Docker CLI is included but **needs `/var/run/docker.sock` mounted into
 the container** to actually invoke Docker. That mount is configured in
 Coolify, not here.
+
+The base is pinned to the **`ubuntu-noble`** tag, not `latest`. `latest` tracks
+`ubuntu-focal`, and Ubuntu 20.04 is out of standard support and predates the
+userland Playwright needs for WebKit — a browser gate on focal fails to launch
+WebKit on a missing `libwebpmux.so.3` regardless of `playwright install
+--with-deps`. Keep the base on a dated Ubuntu tag so a base refresh cannot
+silently move the fleet across a distro release.
+
+Two behaviour changes came with 24.04 and are worth knowing before debugging a
+workflow against it:
+
+- **Python is externally managed (PEP 668).** `pip install` into the system
+  interpreter now refuses with `externally-managed-environment`. Use a virtual
+  environment or `pipx`; reach for `--break-system-packages` only deliberately.
+- **glibc moved.** Anything a workflow cached under `_work` that was compiled
+  against focal should be rebuilt on the first run after the upgrade.
 
 Renovate should update the inherited image digest deliberately. Treat that
 update as an entrypoint/lifecycle change and repeat the persistence proof below
