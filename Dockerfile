@@ -10,15 +10,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       python3 \
       python3-pip \
       build-essential \
+    && apt-get install -y --only-upgrade ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+# Node 24.22.1+ fixes CVE-2026-111497 (Brotli decoder) and distrusts the compromised
+# eMudhra intermediates; Node 20 is end-of-life and gets neither fix.
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/* \
+    && node -e "const [a,b,c]=process.versions.node.split('.').map(Number); if (a!==24||b<22||(b===22&&c<1)) { console.error('node '+process.version+' < 24.22.1'); process.exit(1) }" \
     && node --version \
     && npm --version
 
-ARG BUN_VERSION=1.3.14
+ARG BUN_VERSION=1.4.4
 RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash -s "bun-v${BUN_VERSION}" \
     && bun --version
 

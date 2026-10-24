@@ -9,8 +9,8 @@ with the toolchain the fleet's CI workflows expect.
 | Tool | Source |
 |---|---|
 | Runner agent, `gh`, `git`, `curl`, `jq` | inherited from a digest-pinned `myoung34/github-runner:ubuntu-noble` |
-| Node.js 20 + `npm` | NodeSource apt repo |
-| Bun 1.3.14 (installed to `/usr/local/bin/bun`) | version-pinned `bun.sh/install` |
+| Node.js 24 (>= 24.22.1) + `npm` | NodeSource apt repo |
+| Bun 1.4.4 (installed to `/usr/local/bin/bun`) | version-pinned `bun.sh/install` |
 | Python 3 + `pip` | apt package |
 | `build-essential` (gcc, make) | apt package |
 | Docker CLI (static binary, `/usr/local/bin/docker`) | `download.docker.com/linux/static` |
