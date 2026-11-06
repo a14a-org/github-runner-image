@@ -1,4 +1,4 @@
-FROM myoung34/github-runner:ubuntu-noble@sha256:c6c7bf984da87a6629f665444e0405b52daf839a68f364ee51c6ca48193ec42b
+FROM myoung34/github-runner:ubuntu-noble@sha256:6c85c3cfb7f977a0bb36370feb17299e4b5edd1568d368a984c5063f3b85b7cc
 
 USER root
 
