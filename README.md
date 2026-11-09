@@ -43,7 +43,8 @@ before promoting it to Coolify.
 
 `.github/workflows/release.yml` builds and pushes to
 `ghcr.io/a14a-org/github-runner-image` on every push to `main` (as `:latest`) and
-on every `v*` tag (as `:vX.Y.Z` and `:vX.Y`).
+on every `v*` tag (as `:X.Y.Z` and `:X.Y`, without the `v`: git tag `v0.3.0`
+publishes image tag `0.3.0`).
 
 ## How to update the runner
 
@@ -82,6 +83,38 @@ all of these invariants:
 - `DISABLE_AUTOMATIC_DEREGISTRATION=true` prevents an ordinary container stop
   from deleting the server-side registration.
 - Registration files are never shared between replicas.
+
+## Runner agent updates
+
+GitHub stops sending jobs to a self-hosted runner that falls too far behind the
+current runner release, and the runner keeps showing online and idle while it
+happens. That is what stopped the fleet on 2026-11-05: the documented rule is an
+update within 30 days of a newer release, and in practice 2.336.0 runners lost
+jobs 30 days after 2.338.0 came out.
+
+The runners keep themselves current by updating in place, which only works when
+the service entrypoint starts the agent through `./run.sh`:
+
+```
+unset EPHEMERAL; exec /entrypoint.sh ./run.sh
+```
+
+Do not start `./bin/Runner.Listener run --startuptype service` directly. In
+service mode the Listener exits to let an outside service manager finish the
+update; in a container that exit stops the container, the update is lost, and
+the runner comes back on the image's version every morning. `run.sh` waits for
+the update to finish and relaunches the new agent inside the same container.
+This was proven on 2026-11-09 with runner-4 started on 2.336.0: it updated
+itself to 2.338.2 without a container restart and took a job afterwards.
+
+An in-place update lives in the container layer, so a recreate (including the
+nightly `runner-recycle` on the host) brings back the image's version until
+GitHub pushes the update again. That is harmless, but keep the base digest from
+drifting far: merge Renovate's base digest PR at least once a quarter.
+
+`host-watch.sh` on the host posts to Slack when a runner passes the documented
+30-day window or when runner-2 (the learning rollback monitor) has run no job
+for two hours.
 
 After any lifecycle change, prove persistence rather than relying on container
 health alone:
