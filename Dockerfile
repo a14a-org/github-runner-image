@@ -31,6 +31,21 @@ RUN curl -fsSL "https://download.docker.com/linux/static/stable/x86_64/docker-${
       | tar -xz -C /usr/local/bin --strip-components=1 docker/docker \
     && docker --version
 
+# Google Chrome stable, where Playwright's "chrome" channel looks for it
+# (/opt/google/chrome/chrome). Hosted runner images ship it; without it every
+# job that uses the channel installs Chrome and its system libraries itself,
+# into the runner's writable layer. The package also pulls in the shared
+# libraries that Playwright's own Chromium needs.
+RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
+      | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg \
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main" \
+      > /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/* \
+    && test -x /opt/google/chrome/chrome \
+    && google-chrome --version
+
 # Intentionally NOT switching to a non-root USER here.
 # The base myoung34/github-runner image expects its entrypoint to run as root
 # so it can perform user-dropping based on RUN_AS_ROOT itself. Locking the

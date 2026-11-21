@@ -14,6 +14,7 @@ with the toolchain the fleet's CI workflows expect.
 | Python 3 + `pip` | apt package |
 | `build-essential` (gcc, make) | apt package |
 | Docker CLI (static binary, `/usr/local/bin/docker`) | `download.docker.com/linux/static` |
+| Google Chrome stable (`/opt/google/chrome/chrome`, Playwright's `chrome` channel) | Google's apt repository |
 
 The Docker CLI is included but **needs `/var/run/docker.sock` mounted into
 the container** to actually invoke Docker. That mount is configured in
@@ -57,9 +58,20 @@ git push origin v0.2.0
 
 CI builds the image, pushes to ghcr.io.
 
-Then in Coolify → `github-runner-ri7ng8lqvntvie43rgq0bn91` service → change
-the image tag and restart. The Coolify service is configured with
-`/var/run/docker.sock` mounted (set this up once).
+Then roll it out on the host with `runner-rollout.sh` (in `/usr/local/bin` on
+a14a-node-0), by digest, never through a Coolify restart: a Coolify-level
+start recreates all runners at once and kills running jobs.
+
+```bash
+RUNNERS=runner-4 runner-rollout.sh sha256:<digest>   # canary on one runner
+gh workflow run runner-canary.yml -R a14a-org/scalarops-ai   # until runner-4 passed it
+runner-rollout.sh sha256:<digest>                    # the rest, runner-2 last
+```
+
+The script waits for each runner to be idle, recreates it, waits for
+"Listening for Jobs", and puts a runner back on its previous digest if it does
+not come up. Afterwards set the same digest in Coolify's stored compose, or a
+Coolify redeploy brings the old image back.
 
 Do not leave production workers on `:latest`. Promote an immutable version tag
 after the image workflow is green so a future restart cannot silently change
